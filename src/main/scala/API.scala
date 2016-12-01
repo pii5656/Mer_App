@@ -104,6 +104,15 @@ object User {
     val content = MercariAPI.sendGETRequest(req_url, params)
     content
   }
+  def getRecentSellerId(access_token: String, global_token: String) = {
+    val result = Search.searchAll(access_token, global_token)
+    result.map{x => x \\ "id"}.map{x => pretty(x)}.toList
+  }
+  def getBigSellerIds(access_token: String, global_token: String, ids: List[String]) = {
+    val results = ids.map{ i => User.getUserProfile(access_token, global_token, i)}
+    results.filter{profile => (profile \\ "data" \\ "ratings" \\ "good").extract[Int] > 150}.map{profile => profile \\ "data" \\ "id"}.map{_.extract[Int]}
+    //results
+  }
 }
 
 object Test {
@@ -135,5 +144,11 @@ object Test {
   }
   def testGetUser = {
     getUserProfile(access_token, global_token, "325094901")
+  }
+  def testRecentId = {
+    getRecentSellerId(access_token, global_token)
+  }
+  def testGetBigSeller = {
+    getBigSellerIds(access_token, global_token, getRecentSellerId(access_token, global_token))
   }
 }

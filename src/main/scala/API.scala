@@ -14,6 +14,11 @@ import scala.io.Source._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 
+import slick.driver.MySQLDriver.api._
+import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
 object UserInfo {
 //val USER_AGENT = "Mercari_r/511 (Android 23; ja; arm64-v8a,; samsung SC-02H Build/6.0.1)";
   val USER_AGENT = "Mercari_r/511 (Android 23; ja; arm64-v8a,; LGE Nexus 5X Build/6.0.1)"
@@ -113,7 +118,10 @@ object User {
     results.filter{profile => (profile \\ "data" \\ "ratings" \\ "good").extract[Int] > 150}.map{profile => profile \\ "data" \\ "id"}.map{_.extract[Int]}
     //results
   }
+
 }
+
+
 
 object Test {
   import MercariAPI._
@@ -150,5 +158,11 @@ object Test {
   }
   def testGetBigSeller = {
     getBigSellerIds(access_token, global_token, getRecentSellerId(access_token, global_token))
+  }
+  def testDB {
+    val db = Database.forURL("jdbc:mysql://localhost/mercari", driver="com.mysql.jdbc.Driver", user="mercari_user", password="mercari_pass")
+    val query = sql"SELECT id, name FROM test".as[(Int, String)]
+    val f:Future[Vector[(Int, String)]] = db.run(query)
+    Await.result(f, Duration.Inf) foreach println
   }
 }
